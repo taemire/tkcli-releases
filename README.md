@@ -24,6 +24,3 @@ sudo mv tkcli /usr/local/bin/
 # 버전 확인
 tkcli version
 ```
-
----
-*소스 코드는 비공개입니다.*
