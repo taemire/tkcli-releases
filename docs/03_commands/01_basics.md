@@ -294,7 +294,7 @@ tkcli update package [service]
 - `nginx`: 최신 안정 버전 소스 다운로드 및 OpenSSL/PCRE2/Zlib 정적 컴파일 포함.
 - `redis`: 최신 소스 다운로드 및 컴파일.
 - `opensearch`: 공식 바이너리 기반 재포장.
-- `mariadb`: MariaDB REST API 기반 바이너리 tarball 다운로드 (LTS 10.11 기본). ⭐ NEW
+- `mariadb`: MariaDB REST API 기반 바이너리 tarball 다운로드 (LTS 10.11 기본). REST API 실패 시 `archive.mariadb.org` 폴백 지원.
 
 ### 빌드 의존성 자동 확인 (Build Dependency Guard)
 
@@ -386,18 +386,22 @@ tkcli update package nginx
 ```
 
 ```bash
-# MariaDB 최신 LTS 패키지 생성
+# MariaDB 최신 LTS 패키지 생성 (버전 미지정 시 자동 감지)
 tkcli update package mariadb
 
 # 출력 결과:
-2026-02-02 17:00:00[INFO] 인터넷 연결 확인 중...
-2026-02-02 17:00:00[SUCC] 인터넷 연결이 확인되었습니다.
-2026-02-02 17:00:01[INFO] LTS 버전(10.11)을 기본으로 사용합니다
-2026-02-02 17:00:01[INFO] MariaDB 10.11 시리즈 최신 버전 탐지 중...
-2026-02-02 17:00:02[INFO] 대상 버전(10.11.11)이 현재(10.11.10)보다 최신입니다.
-2026-02-02 17:00:02[INFO] mariadb 10.11.11 소스/아티팩트 다운로드 중...
-2026-02-02 17:02:30[SUCC] 패키지가 성공적으로 생성되었습니다: /root/dist/packages/mariadb-10.11.11.tar.gz
+2026-02-09 16:59:51[INFO] 인터넷 연결 확인 중...
+2026-02-09 16:59:52[SUCC] 인터넷 연결이 확인되었습니다.
+2026-02-09 16:59:52[INFO] 현재 설치된 버전: 10.11.2 (메이저: 10.11)
+2026-02-09 16:59:52[INFO] mariadb의 최신 안정 버전을 감지하는 중 (메이저 10.11 필터링)...
+2026-02-09 16:59:52[INFO] MariaDB 10.11 시리즈 최신 버전 탐지 중...
+2026-02-09 16:59:54[INFO] 대상 버전(10.11.16)이 현재(10.11.2)보다 최신입니다. 패키지 업데이트를 권장합니다.
+2026-02-09 16:59:54[INFO] mariadb 10.11.16 소스/아티팩트 다운로드 중...
+2026-02-09 17:01:12[INFO] mariadb 10.11.16 빌드 및 패키지 생성 중...
+2026-02-09 17:01:20[SUCC] 패키지가 성공적으로 생성되었습니다: /root/dist/packages/mariadb-10.11.16.tar.gz
 ```
+
+> **버전 자동 감지 (v0.5.7)**: 버전을 지정하지 않으면 현재 설치된 MariaDB의 메이저 시리즈(예: 10.11)를 자동 추출하고, REST API(`downloads.mariadb.org`) 또는 아카이브(`archive.mariadb.org`) 폴백을 통해 최신 패치 버전을 감지합니다.
 
 ```bash
 # 특정 버전 지정 (--version 플래그)

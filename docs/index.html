@@ -5,30 +5,45 @@
   <title>TKCLI 사용자 매뉴얼</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-darklight-theme@3/dist/docsify-themeable/style.min.css">
+  <style>
+    :root { --theme-color: #42b983; }
+    .dark-mode-toggle { position: fixed; top: 10px; right: 10px; z-index: 999; background: var(--theme-color); color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; }
+    .dark-mode-toggle:hover { opacity: 0.8; }
+    body.dark { --base-background-color: #1e1e1e; --base-color: #ccc; --sidebar-background: #252525; }
+    body.dark .sidebar { background: var(--sidebar-background); }
+    body.dark .content { background: var(--base-background-color); color: var(--base-color); }
+    body.dark .markdown-section { color: var(--base-color); }
+    body.dark .markdown-section h1, body.dark .markdown-section h2, body.dark .markdown-section h3 { color: #fff; }
+    body.dark .sidebar-nav a { color: #ccc; }
+    body.dark .app-name { color: #fff; }
+  </style>
 </head>
 <body>
+  <button class="dark-mode-toggle" onclick="toggleDarkMode()">🌙 다크</button>
   <div id="app"></div>
   <script>
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark');
+      const btn = document.querySelector('.dark-mode-toggle');
+      btn.textContent = document.body.classList.contains('dark') ? '☀️ 라이트' : '🌙 다크';
+      localStorage.setItem('darkMode', document.body.classList.contains('dark'));
+    }
+    if (localStorage.getItem('darkMode') === 'true') {
+      document.body.classList.add('dark');
+      document.querySelector('.dark-mode-toggle').textContent = '☀️ 라이트';
+    }
     window.$docsify = {
       name: 'TKCLI',
       loadSidebar: true,
       subMaxLevel: 3,
       auto2top: true,
       homepage: '00_intro.md',
-      search: { placeholder: '검색...', noData: '결과 없음', paths: 'auto' },
-      darklightTheme: {
-        defaultTheme: 'light',
-        siteFont: 'Source Sans Pro, sans-serif',
-        dark: { accent: '#42b983' },
-        light: { accent: '#42b983' }
-      }
+      search: { placeholder: '검색...', noData: '결과 없음', paths: 'auto' }
     }
   </script>
   <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/docsify.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/docsify-pagination/dist/docsify-pagination.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/docsify-darklight-theme@3/dist/docsify-themeable/index.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-go.min.js"></script>
 </body>

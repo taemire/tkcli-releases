@@ -42,6 +42,22 @@ tkcli service start mariadb
 mysql -u root -p
 ```
 
+### 패키지 생성 시 버전 감지 실패
+
+```bash
+# MariaDB 버전 미지정 시 "최신 버전을 찾을 수 없습니다" 오류가 발생하는 경우
+
+# 1. 인터넷 연결 확인
+curl -s -o /dev/null -w "%{http_code}" https://downloads.mariadb.org
+curl -s -o /dev/null -w "%{http_code}" https://archive.mariadb.org
+
+# 2. 두 사이트 모두 차단된 경우 → 버전을 직접 지정
+tkcli update package mariadb --version 10.11.16
+
+# 3. v0.5.7 이상으로 업데이트 시 archive.mariadb.org 폴백 자동 지원
+tkcli version
+```
+
 ## 8.2 자동 완성이 작동하지 않음
 
 ```bash
