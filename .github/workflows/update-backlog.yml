@@ -1,0 +1,149 @@
+name: Update Issue Backlog
+
+on:
+  issues:
+    types: [opened, reopened, closed, deleted, edited]
+  workflow_dispatch:
+
+# 동시 실행 방지
+concurrency:
+  group: update-backlog
+  cancel-in-progress: true
+
+jobs:
+  update-doc:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Process Issues and Update Backlog
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DOC_FILE: "docs/ISSUE_BACKLOG.md"
+        run: |
+          # 1. 문서 디렉토리 및 파일 초기화
+          mkdir -p docs
+          if [ ! -f "$DOC_FILE" ]; then
+            cat > "$DOC_FILE" << 'INIT'
+          # 🚀 tkcli 이슈 백로그 (Auto-Synced)
+
+          <!-- START_ISSUES_LIST -->
+          <!-- END_ISSUES_LIST -->
+          INIT
+          fi
+
+          # 2. Python 스크립트 생성
+          cat << 'PYEOF' > update_script.py
+          import subprocess
+          import json
+          import re
+          import os
+
+          def get_issues():
+              """gh CLI를 통해 Open 이슈 데이터 가져오기"""
+              cmd = [
+                  "gh", "issue", "list",
+                  "--state", "open",
+                  "--limit", "100",
+                  "--json", "number,title,author,url,body"
+              ]
+              result = subprocess.run(cmd, capture_output=True, text=True)
+              if result.returncode != 0:
+                  print(f"⚠️ gh issue list failed: {result.stderr}")
+                  return []
+              return json.loads(result.stdout)
+
+          def process_issues(issues):
+              """이슈 데이터를 마크다운 테이블로 변환"""
+              content = "| No. | Title | Summary | Images | Link |\n"
+              content += "| :---: | --- | --- | --- | :---: |\n"
+
+              if not issues:
+                  content += "| - | 현재 열려 있는 이슈가 없습니다 | - | - | - |\n"
+                  return content
+
+              img_pattern = re.compile(r'!\[.*?\]\((.*?)\)')
+
+              for issue in issues:
+                  number = issue['number']
+                  title = issue['title'].replace('|', '-')
+                  url = issue['url']
+                  body = issue.get('body') or ""
+
+                  # 본문 요약 (이미지 태그 제거 후 80자 제한)
+                  summary = body.replace('\r', '').replace('\n', ' ')
+                  summary = re.sub(r'<img[^>]*>', '', summary)
+                  summary = re.sub(r'!\[.*?\]\(.*?\)', '', summary)
+                  summary = re.sub(r' +', ' ', summary).strip()
+                  if len(summary) > 80:
+                      summary = summary[:80] + "..."
+                  summary = summary.replace('|', '-')
+
+                  # 이미지 추출 (Markdown + HTML img 태그)
+                  md_images = img_pattern.findall(body)
+                  html_images = re.findall(r'<img[^>]+src=["\']([^"\']+)["\']', body)
+                  images = md_images + html_images
+
+                  image_cell = "-"
+                  if images:
+                      links = [f"[Img{i+1}]({link})" for i, link in enumerate(images)]
+                      image_cell = ", ".join(links)
+
+                  content += f"| #{number} | {title} | {summary} | {image_cell} | [Link]({url}) |\n"
+
+              return content
+
+          def update_file(new_content, file_path):
+              """마커 사이의 내용만 교체"""
+              with open(file_path, 'r', encoding='utf-8') as f:
+                  original_content = f.read()
+
+              pattern = re.compile(
+                  r'(<!-- START_ISSUES_LIST -->)(.*?)(<!-- END_ISSUES_LIST -->)',
+                  re.DOTALL
+              )
+
+              if pattern.search(original_content):
+                  updated_content = pattern.sub(
+                      rf'\1\n{new_content}\3',
+                      original_content
+                  )
+                  with open(file_path, 'w', encoding='utf-8') as f:
+                      f.write(updated_content)
+                  print("✅ Document updated successfully.")
+              else:
+                  print("⚠️ Markers not found in the document.")
+
+          if __name__ == "__main__":
+              issues = get_issues()
+              print(f"Found {len(issues)} open issue(s)")
+              table_content = process_issues(issues)
+              update_file(table_content, os.environ['DOC_FILE'])
+          PYEOF
+
+          # 3. 스크립트 실행
+          python3 update_script.py
+
+      - name: Commit and Push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if [[ -n $(git status -s docs/ISSUE_BACKLOG.md) ]]; then
+            git add docs/ISSUE_BACKLOG.md
+            git commit -m "docs: 이슈 백로그 자동 갱신 [skip ci]"
+            git push
+            echo "🚀 Changes pushed to repository."
+          else
+            echo "👍 No changes to commit."
+          fi
