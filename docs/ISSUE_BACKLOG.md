@@ -8,7 +8,7 @@
 <!-- START_ISSUES_LIST -->
 | No. | Title | Summary | Images | Link |
 | :---: | --- | --- | --- | :---: |
-| - | 현재 열려 있는 이슈가 없습니다 | - | - | - |
+| #1 | tkcli 마리아 버전 패키지 다운로드시 다운로드 불가 이슈 | tkcli 패키지 다운로드 명령 수행 시 tkcli update package mariadb는 -V 10.11.15 같이 특정 버전을 지정하여 ... | [Img1](https://github.com/user-attachments/assets/b2f5ee4d-ff0b-4321-a992-343037762e53) | [Link](https://github.com/taemire/tkcli-releases/issues/1) |
 <!-- END_ISSUES_LIST -->
 
 ---
